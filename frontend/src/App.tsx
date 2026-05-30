@@ -1,22 +1,27 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import Layout from './components/Layout/Layout';
-import Dashboard from './pages/Dashboard';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import TransactionsList from './pages/TransactionsList';
-import AddTransaction from './pages/AddTransaction';
-import EditTransaction from './pages/EditTransaction';
-import SavingsGoalsList from './pages/SavingsGoalsList';
-import AddSavingsGoal from './pages/AddSavingsGoal';
-import EditSavingsGoal from './pages/EditSavingsGoal';
-import BudgetSettings from './pages/BudgetSettings';
-import Profile from './pages/Profile';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminUsers from './pages/admin/AdminUsers';
-import AdminCategories from './pages/admin/AdminCategories';
-import AdminTransactions from './pages/admin/AdminTransactions';
-import AddCategory from './pages/admin/AddCategory';
+import {
+  HashRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import Layout from "./components/Layout/Layout";
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import TransactionsList from "./pages/TransactionsList";
+import AddTransaction from "./pages/AddTransaction";
+import EditTransaction from "./pages/EditTransaction";
+import SavingsGoalsList from "./pages/SavingsGoalsList";
+import AddSavingsGoal from "./pages/AddSavingsGoal";
+import EditSavingsGoal from "./pages/EditSavingsGoal";
+import BudgetSettings from "./pages/BudgetSettings";
+import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminCategories from "./pages/admin/AdminCategories";
+import AdminTransactions from "./pages/admin/AdminTransactions";
+import AddCategory from "./pages/admin/AddCategory";
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -24,7 +29,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ minHeight: "100vh" }}
+      >
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
@@ -64,7 +72,10 @@ function App() {
             <Route path="transactions/edit/:id" element={<EditTransaction />} />
             <Route path="savings-goals" element={<SavingsGoalsList />} />
             <Route path="savings-goals/add" element={<AddSavingsGoal />} />
-            <Route path="savings-goals/edit/:id" element={<EditSavingsGoal />} />
+            <Route
+              path="savings-goals/edit/:id"
+              element={<EditSavingsGoal />}
+            />
             <Route path="budget" element={<BudgetSettings />} />
             <Route path="profile" element={<Profile />} />
             <Route path="admin" element={<AdminDashboard />} />

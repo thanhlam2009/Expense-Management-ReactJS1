@@ -1,5 +1,5 @@
-import React from 'react';
-import { Modal, Row, Col } from 'react-bootstrap';
+import React from "react";
+import { Modal, Row, Col } from "react-bootstrap";
 
 interface SpendingSuggestionsModalProps {
   show: boolean;
@@ -16,12 +16,12 @@ const SpendingSuggestionsModal: React.FC<SpendingSuggestionsModalProps> = ({
   needs,
   wants,
   savings,
-  totalIncome
+  totalIncome,
 }) => {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(amount);
   };
 
@@ -55,7 +55,7 @@ const SpendingSuggestionsModal: React.FC<SpendingSuggestionsModalProps> = ({
             <div className="text-center p-3 border rounded">
               <h5 className="text-info">{formatCurrency(savings)}</h5>
               <p className="mb-0">Tiết kiệm (20%)</p>
-              <small className="text-muted">Đầu tư, dự phòng</small>
+              <small className="text-muted">Đầu tư, dự phòng,</small>
             </div>
           </Col>
         </Row>

@@ -12,13 +12,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app import create_app
 
+# Render/Gunicorn cần biến app ở cấp module
+app = create_app()
+
 if __name__ == '__main__':
-    # Create the Flask app
-    app = create_app()
-    
-    # Run the development server
     app.run(
-        host='127.0.0.1',
+        host='0.0.0.0',
         port=5001,
         debug=True
     )

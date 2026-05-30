@@ -1,6 +1,13 @@
 // Auth Context - Quản lý authentication state
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import axios from "axios";
+import { API_BASE_URL } from "../services/api";
 
 export interface User {
   id: number;
@@ -32,8 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/auth/check-session', {
-        withCredentials: true
+      const response = await axios.get(`${API_BASE_URL}/auth/check-session`, {
+        withCredentials: true,
       });
       if (response.data.authenticated) {
         setUser(response.data.user);
@@ -47,21 +54,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string, remember: boolean) => {
     const response = await axios.post(
-      'http://localhost:5001/auth/login',
+      `${API_BASE_URL}/auth/login`,
       { email, password, remember },
-      { 
+      {
         withCredentials: true,
         headers: {
-          'Content-Type': 'application/json'
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
     setUser(response.data.user);
   };
 
   const logout = async () => {
-    await axios.get('http://localhost:5001/auth/logout', { 
-      withCredentials: true 
+    await axios.get(`${API_BASE_URL}/auth/logout`, {
+      withCredentials: true,
     });
     setUser(null);
   };
@@ -76,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

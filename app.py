@@ -1,4 +1,4 @@
-from flask import Flask, app
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
@@ -19,11 +19,12 @@ def create_app(config_name=None):
     # Load configuration
     config_name = config_name or os.environ.get('FLASK_CONFIG', 'development')
     app.config.from_object(config[config_name])
+    
     app.config['SESSION_COOKIE_SAMESITE'] = 'None'
-app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_SECURE'] = True
 
-app.config['REMEMBER_COOKIE_SAMESITE'] = 'None'
-app.config['REMEMBER_COOKIE_SECURE'] = True
+    app.config['REMEMBER_COOKIE_SAMESITE'] = 'None'
+    app.config['REMEMBER_COOKIE_SECURE'] = True
 
     
     # Initialize extensions

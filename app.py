@@ -28,13 +28,17 @@ def create_app(config_name=None):
     
     # Configure CORS for React development
     CORS(app, resources={
-        r"/*": {
-            "origins": ["http://localhost:5173", "http://localhost:3000"],
-            "supports_credentials": True,
-            "allow_headers": ["Content-Type", "Authorization"],
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-        }
-    })
+    r"/*": {
+        "origins": [
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "https://expense-management-reactjs1-frontend.onrender.com"
+        ],
+        "supports_credentials": True,
+        "allow_headers": ["Content-Type", "Authorization"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    }
+})
     
     # Configure login manager
     login_manager.login_view = 'auth.login'

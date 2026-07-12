@@ -1,13 +1,8 @@
-from flask import Blueprint, render_template, redirect, url_for, send_file, make_response
+from flask import Blueprint, jsonify, make_response
 from flask_login import login_required, current_user
 from models.transaction import Transaction
-from models.savings_goal import SavingsGoal
-from models.category import Category
-from models.monthly_budget import MonthlyBudget
 from app import db
-from sqlalchemy import func, extract
-from datetime import datetime, timedelta
-import calendar
+from datetime import datetime
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
@@ -17,145 +12,7 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
-    return redirect(url_for('auth.login'))
-
-@main_bp.route('/dashboard')
-@login_required
-def dashboard():
-    # Get current date info
-    today = datetime.now().date()
-    current_month = today.month
-    current_year = today.year
-    
-    # Calculate date ranges
-    month_start = today.replace(day=1)
-    if current_month == 12:
-        month_end = today.replace(year=current_year + 1, month=1, day=1) - timedelta(days=1)
-    else:
-        month_end = today.replace(month=current_month + 1, day=1) - timedelta(days=1)
-    
-    # Get user's transactions
-    user_transactions = Transaction.query.filter_by(user_id=current_user.id)
-    
-    # Calculate totals
-    total_income = user_transactions.filter_by(type='income').with_entities(func.sum(Transaction.amount)).scalar() or 0
-    total_expense = user_transactions.filter_by(type='expense').with_entities(func.sum(Transaction.amount)).scalar() or 0
-    balance = total_income - total_expense
-    
-    # Monthly totals
-    monthly_income = user_transactions.filter(
-        Transaction.type == 'income',
-        Transaction.date >= month_start,
-        Transaction.date <= month_end
-    ).with_entities(func.sum(Transaction.amount)).scalar() or 0
-    
-    monthly_expense = user_transactions.filter(
-        Transaction.type == 'expense',
-        Transaction.date >= month_start,
-        Transaction.date <= month_end
-    ).with_entities(func.sum(Transaction.amount)).scalar() or 0
-    
-    # Recent transactions
-    recent_transactions = user_transactions.order_by(Transaction.created_at.desc()).limit(5).all()
-    
-    # Category spending this month
-    category_spending = db.session.query(
-        Category.name,
-        func.sum(Transaction.amount).label('total')
-    ).join(Transaction).filter(
-        Transaction.user_id == current_user.id,
-        Transaction.type == 'expense',
-        Transaction.date >= month_start,
-        Transaction.date <= month_end
-    ).group_by(Category.name).order_by(func.sum(Transaction.amount).desc()).limit(5).all()
-    
-    # Savings goals
-    savings_goals = SavingsGoal.query.filter_by(user_id=current_user.id, is_active=True).all()
-    
-    # Monthly comparison data for chart
-    monthly_data = []
-    for i in range(6):  # Last 6 months
-        target_date = today.replace(day=1) - timedelta(days=i*30)
-        month_income = user_transactions.filter(
-            Transaction.type == 'income',
-            extract('month', Transaction.date) == target_date.month,
-            extract('year', Transaction.date) == target_date.year
-        ).with_entities(func.sum(Transaction.amount)).scalar() or 0
-        
-        month_expense = user_transactions.filter(
-            Transaction.type == 'expense',
-            extract('month', Transaction.date) == target_date.month,
-            extract('year', Transaction.date) == target_date.year
-        ).with_entities(func.sum(Transaction.amount)).scalar() or 0
-        
-        monthly_data.append({
-            'month': calendar.month_name[target_date.month],
-            'income': float(month_income),
-            'expense': float(month_expense)
-        })
-    
-    monthly_data.reverse()
-    
-    # Budget Alert Information
-    budget_alert = None
-    current_budget = MonthlyBudget.get_current_month_budget(current_user.id)
-    if current_budget and current_budget.budget_limit > 0:
-        spending_percentage = (float(monthly_expense) / float(current_budget.budget_limit)) * 100
-        
-        # Chỉ hiển thị alert khi >= 70% (thay vì 80% để hiển thị sớm hơn)
-        if spending_percentage >= 70:
-            # Xác định mức độ cảnh báo
-            if spending_percentage >= 100:
-                alert_level = 'danger'
-                alert_color = 'danger'
-                alert_message = 'Đã vượt quá giới hạn chi tiêu!'
-                alert_title = '🚨 Vượt Giới Hạn!'
-            elif spending_percentage >= 95:
-                alert_level = 'critical'
-                alert_color = 'danger'
-                alert_message = 'Sắp vượt quá giới hạn chi tiêu!'
-                alert_title = '⚠️ Nguy Hiểm!'
-            elif spending_percentage >= 80:
-                alert_level = 'warning'
-                alert_color = 'warning'
-                alert_message = 'Đã chi tiêu gần đạt giới hạn tháng'
-                alert_title = '⚡ Cảnh Báo!'
-            else:  # 70-80%
-                alert_level = 'info'
-                alert_color = 'info'
-                alert_message = 'Chi tiêu đang tăng, cần chú ý'
-                alert_title = '📊 Theo Dõi'
-            
-            budget_alert = {
-                'budget_limit': float(current_budget.budget_limit),
-                'current_spending': float(monthly_expense),
-                'remaining_budget': float(current_budget.budget_limit) - float(monthly_expense),
-                'spending_percentage': round(spending_percentage, 1),
-                'alert_level': alert_level,
-                'alert_color': alert_color,
-                'alert_message': alert_message,
-                'alert_title': alert_title,
-                'show_alert': True
-            }
-    
-    return render_template('main/dashboard.html',
-                         total_income=total_income,
-                         total_expense=total_expense,
-                         balance=balance,
-                         monthly_income=monthly_income,
-                         monthly_expense=monthly_expense,
-                         recent_transactions=recent_transactions,
-                         category_spending=category_spending,
-                         savings_goals=savings_goals,
-                         monthly_data=monthly_data,
-                         budget_alert=budget_alert)
-
-@main_bp.route('/profile')
-@login_required
-def profile():
-    return render_template('main/profile.html')
+    return jsonify({'message': 'Expense management API'})
 
 @main_bp.route('/export/transactions')
 @login_required
@@ -292,8 +149,5 @@ def export_transactions():
         return response
         
     except Exception as e:
-        # Log error và redirect về dashboard với thông báo lỗi
         print(f"Export error: {str(e)}")
-        from flask import flash
-        flash(f'Lỗi khi export Excel: {str(e)}', 'error')
-        return redirect(url_for('main.dashboard'))
+        return jsonify({'error': f'Lỗi khi export Excel: {str(e)}'}), 500

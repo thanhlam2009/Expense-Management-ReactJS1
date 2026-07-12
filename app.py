@@ -6,7 +6,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_cors import CORS
 from config import config
 import os
-from datetime import datetime, date
+from datetime import datetime
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -78,14 +78,6 @@ def create_app(config_name=None):
     
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(budget_bp)
-    
-    # Add context processors
-    @app.context_processor
-    def inject_globals():
-        return {
-            'datetime': datetime,
-            'date': date
-        }
     
     # Create database tables
     with app.app_context():

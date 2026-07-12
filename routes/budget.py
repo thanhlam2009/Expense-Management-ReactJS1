@@ -5,7 +5,7 @@ API endpoints cho quản lý giới hạn chi tiêu và cảnh báo
 """
 
 from datetime import datetime
-from flask import Blueprint, request, jsonify, render_template
+from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import func, extract
 from app import db
@@ -81,13 +81,9 @@ def get_current_budget():
 def set_monthly_budget():
     """Đặt giới hạn chi tiêu cho tháng hiện tại"""
     try:
-        # Handle both JSON and form data
-        if request.is_json:
-            data = request.get_json()
-            budget_limit = float(data.get('budget_limit', 0))
-        else:
-            budget_limit = float(request.form.get('budget_limit', 0))
-        
+        data = request.get_json() or {}
+        budget_limit = float(data.get('budget_limit', 0))
+
         if budget_limit <= 0:
             return jsonify({
                 'success': False,
@@ -116,20 +112,13 @@ def set_monthly_budget():
             db.session.add(budget)
         
         db.session.commit()
-        
-        # Handle different response types
-        if request.is_json:
-            return jsonify({
-                'success': True,
-                'budget': budget.to_dict(),
-                'message': 'Đã cập nhật giới hạn chi tiêu thành công'
-            })
-        else:
-            # Redirect back to settings page with success message
-            from flask import redirect, url_for, flash
-            flash('Đã cập nhật giới hạn chi tiêu thành công!', 'success')
-            return redirect(url_for('budget.budget_settings'))
-        
+
+        return jsonify({
+            'success': True,
+            'budget': budget.to_dict(),
+            'message': 'Đã cập nhật giới hạn chi tiêu thành công'
+        })
+
     except Exception as e:
         db.session.rollback()
         return jsonify({
@@ -206,55 +195,6 @@ def get_budget_alert():
             'success': False,
             'message': f'Lỗi khi lấy thông tin cảnh báo: {str(e)}'
         }), 500
-
-@budget_bp.route('/budget/settings')
-@login_required
-def budget_settings():
-    """Trang cài đặt budget"""
-    # Lấy thông tin budget hiện tại
-    current_budget = MonthlyBudget.get_current_month_budget(current_user.id)
-    
-    # Lấy thông tin chi tiêu hiện tại nếu có budget
-    budget_info = None
-    if current_budget:
-        now = datetime.now()
-        # Tính tổng chi tiêu tháng hiện tại
-        from sqlalchemy import func, extract
-        current_spending = db.session.query(func.sum(Transaction.amount)).filter(
-            Transaction.user_id == current_user.id,
-            Transaction.type == 'expense',
-            extract('year', Transaction.date) == now.year,
-            extract('month', Transaction.date) == now.month
-        ).scalar() or 0
-        
-        spending_percentage = (float(current_spending) / float(current_budget.budget_limit)) * 100
-        
-        # Xác định màu sắc cảnh báo
-        if spending_percentage >= 95:
-            alert_color = 'danger'
-            alert_level = 'Nguy hiểm'
-        elif spending_percentage >= 80:
-            alert_color = 'warning'
-            alert_level = 'Cảnh báo'
-        elif spending_percentage >= 70:
-            alert_color = 'info'
-            alert_level = 'Chú ý'
-        else:
-            alert_color = 'success'
-            alert_level = 'An toàn'
-        
-        budget_info = {
-            'budget_limit': float(current_budget.budget_limit),
-            'current_spending': float(current_spending),
-            'remaining_budget': float(current_budget.budget_limit) - float(current_spending),
-            'spending_percentage': round(spending_percentage, 1),
-            'alert_color': alert_color,
-            'alert_level': alert_level
-        }
-    
-    return render_template('budget/settings.html', 
-                         current_budget=current_budget, 
-                         budget_info=budget_info)
 
 @budget_bp.route('/api/budget/test', methods=['GET'])
 def test_budget():

@@ -620,7 +620,7 @@ def get_admin_stats():
         'total_income': float(total_income),
         'total_expense': float(total_expense),
         'recent_users': [u.to_dict() for u in recent_users],
-        'top_categories': [[cat.name, float(total)] for cat, total in top_categories]
+        'top_categories': [[cat_name, float(total)] for cat_name, total in top_categories]
     })
 
 @api_bp.route('/admin/users', methods=['GET'])

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FormField, SelectField, TextAreaField } from '../../components/common';
 import { validateField } from '../../utils/validation';
+import { API_BASE_URL } from '../../services/api';
 
 const AddCategory: React.FC = () => {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ const AddCategory: React.FC = () => {
 
     setLoading(true);
     try {
-      await axios.post('http://localhost:5001/api/categories', formData, { withCredentials: true });
+      await axios.post(`${API_BASE_URL}/api/categories`, formData, { withCredentials: true });
       navigate('/admin/categories');
     } catch (error: any) {
       console.error('Error adding category:', error);

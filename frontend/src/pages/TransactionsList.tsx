@@ -1,7 +1,7 @@
 // Transactions List Page - Copy từ templates/transactions/index.html
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { transactionsAPI } from '../services/api';
+import { transactionsAPI, API_BASE_URL } from '../services/api';
 import Pagination from '../components/Pagination/Pagination';
 import { formatCurrency } from '../utils/formatters';
 
@@ -136,14 +136,14 @@ export default function TransactionsList() {
   const showReceipt = (filename: string) => {
     setReceiptModal({
       show: true,
-      image: `http://localhost:5001/static/uploads/${filename}`
+      image: `${API_BASE_URL}/static/uploads/${filename}`
     });
   };
 
   const handleExport = async () => {
     try {
       // Call export endpoint
-      window.location.href = 'http://localhost:5001/api/export/transactions';
+      window.location.href = `${API_BASE_URL}/export/transactions`;
     } catch (error) {
       console.error('Error exporting transactions:', error);
     }

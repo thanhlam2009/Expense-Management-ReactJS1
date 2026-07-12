@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatters';
 import MonthlyAnalysis from '../../components/Dashboard/MonthlyAnalysis';
 import AdvancedAnalysis from '../../components/AdvancedAnalysis';
+import { API_BASE_URL } from '../../services/api';
 
 interface AdminStats {
   total_users: number;
@@ -34,7 +35,7 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       // TODO: Replace with actual admin API endpoint
-      const response = await fetch('http://localhost:5001/api/admin/stats', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/stats`, {
         credentials: 'include'
       });
       

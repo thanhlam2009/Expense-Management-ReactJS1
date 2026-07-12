@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../services/api';
 
 interface StatsData {
   total_users: number;
@@ -82,10 +83,10 @@ const AdminDashboard = () => {
       
       // Load stats, users, categories in parallel
       const [statsRes, usersRes, categoriesRes, monthsRes] = await Promise.all([
-        axios.get('http://localhost:5001/api/admin/stats', { withCredentials: true }),
-        axios.get('http://localhost:5001/api/admin/recent-users', { withCredentials: true }),
-        axios.get('http://localhost:5001/api/admin/top-categories', { withCredentials: true }),
-        axios.get('http://localhost:5001/api/stats/all-months', { withCredentials: true })
+        axios.get(`${API_BASE_URL}/api/admin/stats`, { withCredentials: true }),
+        axios.get(`${API_BASE_URL}/api/admin/recent-users`, { withCredentials: true }),
+        axios.get(`${API_BASE_URL}/api/admin/top-categories`, { withCredentials: true }),
+        axios.get(`${API_BASE_URL}/api/stats/all-months`, { withCredentials: true })
       ]);
 
       setStats(statsRes.data);

@@ -1,6 +1,7 @@
 // Admin Users Page - Copy từ templates/admin/users.html
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
+import { API_BASE_URL } from '../../services/api';
 
 interface User {
   id: number;
@@ -25,7 +26,7 @@ export default function AdminUsers() {
     try {
       setLoading(true);
       // TODO: Replace with actual admin API endpoint
-      const response = await fetch('http://localhost:5001/api/admin/users', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
         credentials: 'include'
       });
       

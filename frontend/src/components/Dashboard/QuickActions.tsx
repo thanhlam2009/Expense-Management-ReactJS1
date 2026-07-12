@@ -3,6 +3,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import ReportModal from '../Reports/ReportModal';
 import SpendingSuggestionsModal from './SpendingSuggestionsModal';
+import { API_BASE_URL } from '../../services/api';
 
 export default function QuickActions() {
   const [showReport, setShowReport] = useState(false);
@@ -18,7 +19,7 @@ export default function QuickActions() {
 
   const handleShowMonthlyReport = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/stats/monthly', {
+      const response = await axios.get(`${API_BASE_URL}/api/stats/monthly`, {
         withCredentials: true
       });
       console.log('Monthly report data:', response.data);
@@ -38,7 +39,7 @@ export default function QuickActions() {
 
   const handleShowSpendingSuggestions = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/spending-suggestions', {
+      const response = await axios.get(`${API_BASE_URL}/api/spending-suggestions`, {
         withCredentials: true
       });
       
@@ -113,7 +114,7 @@ export default function QuickActions() {
             {/* Export Actions Row */}
             <div className="row mt-3">
               <div className="col-md-4 mb-2">
-                <a href="http://localhost:5001/export/transactions" className="btn btn-outline-success w-100">
+                <a href={`${API_BASE_URL}/export/transactions`} className="btn btn-outline-success w-100">
                   <i className="fas fa-file-excel me-2"></i>
                   Export Excel
                 </a>

@@ -1,7 +1,7 @@
 // Edit Transaction Page - Copy từ templates/transactions/edit.html
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { transactionsAPI } from '../services/api';
+import { transactionsAPI, API_BASE_URL } from '../services/api';
 
 interface Category {
   id: number;
@@ -227,7 +227,7 @@ export default function EditTransaction() {
                 {transaction?.receipt_image && (
                   <div className="current-image mb-2">
                     <img
-                      src={`http://localhost:5001/static/uploads/${transaction.receipt_image}`}
+                      src={`${API_BASE_URL}/static/uploads/${transaction.receipt_image}`}
                       alt="Current receipt"
                       className="img-thumbnail"
                       style={{ maxWidth: '200px' }}

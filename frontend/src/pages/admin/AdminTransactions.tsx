@@ -1,6 +1,7 @@
 // Admin Transactions Page - Copy từ templates/admin/transactions.html
 import { useState, useEffect } from "react";
 import { formatCurrency } from "../../utils/formatters";
+import { API_BASE_URL } from "../../services/api";
 
 interface Transaction {
   id: number;
@@ -38,7 +39,7 @@ export default function AdminTransactions() {
       setLoading(true);
       // TODO: Replace with actual admin API endpoint
       const response = await fetch(
-        "http://localhost:5001/api/admin/transactions",
+        `${API_BASE_URL}/api/admin/transactions`,
         {
           credentials: "include",
         },
@@ -358,7 +359,7 @@ export default function AdminTransactions() {
               </div>
               <div className="modal-body text-center">
                 <img
-                  src={`http://localhost:5001/static/uploads/${selectedReceipt}`}
+                  src={`${API_BASE_URL}/static/uploads/${selectedReceipt}`}
                   alt="Hóa đơn"
                   className="img-fluid rounded"
                 />

@@ -1,6 +1,7 @@
 // Admin Categories Page - Copy từ templates/admin/categories.html
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../services/api';
 
 interface Category {
   id: number;
@@ -24,7 +25,7 @@ export default function AdminCategories() {
     try {
       setLoading(true);
       // TODO: Replace with actual admin API endpoint
-      const response = await fetch('http://localhost:5001/api/admin/categories', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/categories`, {
         credentials: 'include'
       });
       

@@ -51,8 +51,22 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
 
+class TestingConfig(Config):
+    """Cấu hình dành cho pytest: dùng SQLite in-memory, cô lập hoàn toàn khỏi DB thật."""
+    from sqlalchemy.pool import StaticPool
+    TESTING = True
+    DEBUG = False
+    # In-memory DB; StaticPool giữ 1 kết nối duy nhất để dữ liệu tồn tại xuyên suốt các request trong 1 test
+    SQLALCHEMY_DATABASE_URI = 'sqlite://'
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'connect_args': {'check_same_thread': False},
+        'poolclass': StaticPool,
+    }
+    WTF_CSRF_ENABLED = False
+
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
+    'testing': TestingConfig,
     'default': DevelopmentConfig
 }

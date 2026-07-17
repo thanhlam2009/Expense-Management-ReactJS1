@@ -15,7 +15,26 @@ def allowed_file(filename):
 @transactions_bp.route('/extract-receipt', methods=['POST'])
 @login_required
 def extract_receipt_info():
-    """Endpoint để trích xuất thông tin từ ảnh hóa đơn bằng OpenAI"""
+    """Trích xuất thông tin hóa đơn bằng AI (OCR)
+    Upload ảnh hóa đơn, hệ thống gửi tới Gemini/OpenAI để trích xuất số tiền, ngày, mô tả,
+    cửa hàng và gợi ý danh mục.
+    ---
+    tags:
+      - Receipt OCR
+    consumes:
+      - multipart/form-data
+    parameters:
+      - name: receipt_image
+        in: formData
+        type: file
+        required: true
+        description: "Ảnh hóa đơn (png/jpg/jpeg/gif/pdf/bmp/webp)"
+    responses:
+      200:
+        description: "Kết quả trích xuất: {success, data: {amount, date, description, merchant, items, category_suggestion, confidence}}"
+      400:
+        description: Không có file, hoặc định dạng file không được hỗ trợ
+    """
     try:
         # Debug log
         print("Files in request:", request.files)

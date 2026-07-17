@@ -16,7 +16,14 @@ budget_bp = Blueprint('budget', __name__)
 @budget_bp.route('/api/budget/current', methods=['GET'])
 @login_required
 def get_current_budget():
-    """Lấy thông tin budget tháng hiện tại"""
+    """Lấy thông tin ngân sách tháng hiện tại
+    ---
+    tags:
+      - Budget
+    responses:
+      200:
+        description: Giới hạn chi tiêu, chi tiêu hiện tại, % đã dùng và mức cảnh báo
+    """
     try:
         from models import Transaction
         
@@ -77,9 +84,29 @@ def get_current_budget():
         }), 500
 
 @budget_bp.route('/api/budget/set', methods=['POST'])
-@login_required  
+@login_required
 def set_monthly_budget():
-    """Đặt giới hạn chi tiêu cho tháng hiện tại"""
+    """Đặt giới hạn chi tiêu cho tháng hiện tại
+    ---
+    tags:
+      - Budget
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required: [budget_limit]
+          properties:
+            budget_limit:
+              type: number
+              example: 5000000
+    responses:
+      200:
+        description: Đã cập nhật giới hạn chi tiêu thành công
+      400:
+        description: Giới hạn chi tiêu phải lớn hơn 0
+    """
     try:
         data = request.get_json() or {}
         budget_limit = float(data.get('budget_limit', 0))
@@ -129,7 +156,15 @@ def set_monthly_budget():
 @budget_bp.route('/api/budget/alert', methods=['GET'])
 @login_required
 def get_budget_alert():
-    """Lấy thông tin cảnh báo chi tiêu tháng hiện tại"""
+    """Lấy cảnh báo chi tiêu tháng hiện tại
+    Trả về mức cảnh báo (an toàn/chú ý/cảnh báo/nguy hiểm/vượt giới hạn) theo % ngân sách đã dùng.
+    ---
+    tags:
+      - Budget
+    responses:
+      200:
+        description: Thông tin cảnh báo (alert=null nếu chưa đặt giới hạn ngân sách)
+    """
     try:
         now = datetime.now()
         
@@ -198,7 +233,14 @@ def get_budget_alert():
 
 @budget_bp.route('/api/budget/test', methods=['GET'])
 def test_budget():
-    """Test endpoint để kiểm tra API hoạt động"""
+    """Health-check của Budget API
+    ---
+    tags:
+      - Budget
+    responses:
+      200:
+        description: API đang hoạt động bình thường
+    """
     return jsonify({
         'success': True,
         'message': 'Budget API hoạt động bình thường',

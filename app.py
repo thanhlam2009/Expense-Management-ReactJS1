@@ -4,6 +4,7 @@ from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 from flask_wtf.csrf import CSRFProtect
 from flask_cors import CORS
+from flasgger import Swagger
 from config import config
 import os
 from datetime import datetime
@@ -12,6 +13,39 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 bcrypt = Bcrypt()
 csrf = CSRFProtect()
+
+SWAGGER_TEMPLATE = {
+    "swagger": "2.0",
+    "info": {
+        "title": "Expense Management API",
+        "description": (
+            "Tài liệu API của hệ thống Quản lý Chi tiêu Cá nhân. "
+            "Xác thực bằng session cookie (Flask-Login): gọi POST /auth/login trước, "
+            "sau đó các endpoint yêu cầu đăng nhập sẽ dùng chung cookie phiên của trình duyệt."
+        ),
+        "version": "1.0.0",
+    },
+    "tags": [
+        {"name": "Auth", "description": "Đăng ký, đăng nhập, đăng xuất, phiên đăng nhập"},
+        {"name": "Transactions", "description": "CRUD giao dịch thu/chi"},
+        {"name": "Categories", "description": "Danh mục thu nhập / chi tiêu"},
+        {"name": "Dashboard & Stats", "description": "Thống kê, biểu đồ, dữ liệu tổng hợp"},
+        {"name": "Savings Goals", "description": "Mục tiêu tiết kiệm"},
+        {"name": "Budget", "description": "Giới hạn chi tiêu tháng và cảnh báo"},
+        {"name": "Predictions", "description": "Dự đoán chi tiêu bằng thống kê/ML"},
+        {"name": "Receipt OCR", "description": "Trích xuất thông tin hóa đơn bằng AI"},
+        {"name": "Admin", "description": "Quản trị hệ thống (yêu cầu quyền admin)"},
+        {"name": "Export", "description": "Xuất báo cáo"},
+    ],
+}
+
+SWAGGER_CONFIG = {
+    "headers": [],
+    "specs": [{"endpoint": "apispec", "route": "/apispec.json", "rule_filter": lambda rule: True, "model_filter": lambda tag: True}],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/apidocs/",
+}
 
 def create_app(config_name=None):
     app = Flask(__name__)
@@ -32,6 +66,7 @@ def create_app(config_name=None):
     login_manager.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
+    Swagger(app, template=SWAGGER_TEMPLATE, config=SWAGGER_CONFIG)
     
     # Configure CORS for React development
     CORS(app, resources={

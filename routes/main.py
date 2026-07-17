@@ -12,12 +12,29 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
+    """Health-check của Backend API
+    ---
+    tags:
+      - Export
+    responses:
+      200:
+        description: Backend đang hoạt động
+    """
     return jsonify({'message': 'Expense management API'})
 
 @main_bp.route('/export/transactions')
 @login_required
 def export_transactions():
-    """Export all user transactions to Excel file"""
+    """Xuất toàn bộ giao dịch ra file Excel (.xlsx)
+    ---
+    tags:
+      - Export
+    produces:
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+    responses:
+      200:
+        description: File Excel (.xlsx) chứa toàn bộ giao dịch kèm tổng kết
+    """
     try:
         # Lấy tất cả giao dịch của user
         transactions = Transaction.query.filter_by(user_id=current_user.id)\

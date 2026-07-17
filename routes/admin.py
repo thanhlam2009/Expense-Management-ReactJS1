@@ -18,6 +18,23 @@ def admin_required(f):
 @login_required
 @admin_required
 def toggle_admin(id):
+    """[Admin] Cấp / gỡ quyền quản trị cho một người dùng
+    ---
+    tags:
+      - Admin
+    parameters:
+      - name: id
+        in: path
+        type: integer
+        required: true
+    responses:
+      200:
+        description: Đã cập nhật quyền của người dùng
+      400:
+        description: Không thể tự thay đổi quyền của chính mình
+      403:
+        description: Không có quyền (không phải admin)
+    """
     user = User.query.get_or_404(id)
     if user.id == current_user.id:
         return jsonify({'error': 'Bạn không thể thay đổi quyền của chính mình!'}), 400

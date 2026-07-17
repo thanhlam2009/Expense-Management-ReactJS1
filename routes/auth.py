@@ -16,6 +16,34 @@ def _user_dict(user):
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    """Đăng nhập
+    Đăng nhập bằng email/mật khẩu, tạo phiên đăng nhập qua cookie (session).
+    ---
+    tags:
+      - Auth
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required: [email, password]
+          properties:
+            email:
+              type: string
+              example: admin@example.com
+            password:
+              type: string
+              example: admin123
+            remember:
+              type: boolean
+              example: false
+    responses:
+      200:
+        description: Đăng nhập thành công, trả về thông tin người dùng
+      401:
+        description: Email hoặc mật khẩu không đúng
+    """
     if current_user.is_authenticated:
         return jsonify({'user': _user_dict(current_user)})
 
@@ -41,6 +69,39 @@ def login():
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
+    """Đăng ký tài khoản mới
+    ---
+    tags:
+      - Auth
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required: [username, email, full_name, password, confirm_password]
+          properties:
+            username:
+              type: string
+              example: nguoidungmoi
+            email:
+              type: string
+              example: moi@example.com
+            full_name:
+              type: string
+              example: Người Dùng Mới
+            password:
+              type: string
+              example: matkhau123
+            confirm_password:
+              type: string
+              example: matkhau123
+    responses:
+      201:
+        description: Đăng ký thành công
+      400:
+        description: Dữ liệu không hợp lệ (email/username đã tồn tại, mật khẩu quá ngắn, xác nhận không khớp...)
+    """
     if current_user.is_authenticated:
         return jsonify({'error': 'Already authenticated'}), 400
 
@@ -84,12 +145,29 @@ def register():
 @auth_bp.route('/logout')
 @login_required
 def logout():
+    """Đăng xuất
+    Xóa phiên đăng nhập hiện tại.
+    ---
+    tags:
+      - Auth
+    responses:
+      200:
+        description: Đăng xuất thành công
+    """
     logout_user()
     return jsonify({'message': 'Đã đăng xuất thành công!'})
 
 @auth_bp.route('/check-session')
 def check_session():
-    """Check if user is authenticated (for React app)"""
+    """Kiểm tra trạng thái đăng nhập
+    Dùng để frontend kiểm tra xem cookie phiên hiện tại còn hợp lệ không.
+    ---
+    tags:
+      - Auth
+    responses:
+      200:
+        description: Trạng thái xác thực hiện tại (authenticated true/false)
+    """
     if current_user.is_authenticated:
         return jsonify({
             'authenticated': True,

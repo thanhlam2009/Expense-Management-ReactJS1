@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { predictionsAPI } from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
 import { formatNumber, getMethodName, getAccuracyBadgeColor, type PredictionData } from '../../utils/prediction';
 
@@ -17,7 +17,7 @@ const PredictionCard: React.FC = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await axios.get('/api/predict-spending', { withCredentials: true });
+      const response = await predictionsAPI.comprehensive();
       setPredictionData(response.data);
     } catch (err: any) {
       console.error('Error loading prediction:', err);

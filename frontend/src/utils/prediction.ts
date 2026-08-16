@@ -16,9 +16,10 @@ export interface PredictionData {
   error?: boolean;
   message?: string;
   recommended_prediction: PredictionMethod;
-  next_month: {
+  current_month: {
     month: number;
     year: number;
+    month_name: string;
   };
   all_predictions: {
     [key: string]: PredictionMethod;

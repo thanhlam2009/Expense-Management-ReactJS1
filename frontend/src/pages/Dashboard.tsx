@@ -6,6 +6,7 @@ import MonthlyChart from '../components/Charts/MonthlyChart';
 import MonthlyStats from '../components/Dashboard/MonthlyStats';
 import RecentTransactions from '../components/Dashboard/RecentTransactions';
 import CategorySpendingCard from '../components/Dashboard/CategorySpendingCard';
+import PredictionCard from '../components/Dashboard/PredictionCard';
 import SavingsGoalsSection from '../components/Dashboard/SavingsGoalsSection';
 import MonthlyAnalysis from '../components/Dashboard/MonthlyAnalysis';
 import AdvancedAnalysis from '../components/AdvancedAnalysis';
@@ -137,6 +138,13 @@ export default function Dashboard() {
         
         <div className="col-lg-6 mb-4">
           <CategorySpendingCard categorySpending={dashboardData.category_spending} />
+        </div>
+      </div>
+
+      {/* Prediction */}
+      <div className="row mb-4">
+        <div className="col-12">
+          <PredictionCard />
         </div>
       </div>
 

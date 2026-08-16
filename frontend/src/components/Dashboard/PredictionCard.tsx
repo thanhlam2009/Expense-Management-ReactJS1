@@ -44,7 +44,7 @@ const PredictionCard: React.FC = () => {
     );
   }
 
-  if (error || !predictionData || predictionData.error || !predictionData.recommended_prediction || !predictionData.next_month) {
+  if (error || !predictionData || predictionData.error || !predictionData.recommended_prediction || !predictionData.current_month) {
     return (
       <div className="card border-warning">
         <div className="card-body">
@@ -63,7 +63,7 @@ const PredictionCard: React.FC = () => {
   }
 
   const prediction = predictionData.recommended_prediction;
-  const nextMonth = predictionData.next_month;
+  const currentMonth = predictionData.current_month;
 
   return (
     <div className="card border-info">
@@ -86,7 +86,7 @@ const PredictionCard: React.FC = () => {
           <div className="col-md-8">
             <h6 className="mb-2">
               <i className="fas fa-calendar-alt me-2"></i>
-              Tháng {nextMonth.month}/{nextMonth.year}
+              Tháng {currentMonth.month}/{currentMonth.year}
             </h6>
             <h3 className="text-primary mb-2">{formatCurrency(prediction.predicted_amount)}</h3>
             <p className="mb-1">

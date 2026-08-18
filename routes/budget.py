@@ -109,7 +109,13 @@ def set_monthly_budget():
     """
     try:
         data = request.get_json() or {}
-        budget_limit = float(data.get('budget_limit', 0))
+        try:
+            budget_limit = float(data.get('budget_limit') or 0)
+        except (TypeError, ValueError):
+            return jsonify({
+                'success': False,
+                'message': 'Giới hạn chi tiêu không hợp lệ'
+            }), 400
 
         if budget_limit <= 0:
             return jsonify({

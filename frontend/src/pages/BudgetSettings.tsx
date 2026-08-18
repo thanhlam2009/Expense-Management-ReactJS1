@@ -27,7 +27,7 @@ export default function BudgetSettings() {
   const loadBudgetInfo = async () => {
     try {
       setLoading(true);
-      const data = await budgetAPI.getCurrent();
+      const { data } = await budgetAPI.getCurrent();
       setBudgetInfo(data);
       if (data.budget_limit) {
         setBudgetLimit(data.budget_limit.toString());
@@ -41,14 +41,22 @@ export default function BudgetSettings() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const parsedLimit = parseFloat(budgetLimit);
+    if (isNaN(parsedLimit) || parsedLimit <= 0) {
+      alert('Vui lòng nhập số tiền giới hạn hợp lệ, lớn hơn 0');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      await budgetAPI.set(parseFloat(budgetLimit));
+      await budgetAPI.set(parsedLimit);
       await loadBudgetInfo(); // Reload to show updated info
     } catch (error: any) {
       console.error('Error setting budget:', error);
-      alert('Có lỗi xảy ra khi lưu giới hạn');
+      const message = error.response?.data?.message || 'Có lỗi xảy ra khi lưu giới hạn';
+      alert(message);
     } finally {
       setSubmitting(false);
     }

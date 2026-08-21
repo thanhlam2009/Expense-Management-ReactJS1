@@ -59,6 +59,9 @@ def login():
         user = User.query.filter_by(email=email).first()
 
         if user and user.check_password(password):
+            if not user.is_active:
+                return jsonify({'error': 'Tài khoản đã bị vô hiệu hóa.'}), 403
+
             if not user.is_verified:
                 return jsonify({
                     'error': 'Tài khoản chưa xác thực email. Vui lòng kiểm tra hộp thư và nhập mã xác thực.',

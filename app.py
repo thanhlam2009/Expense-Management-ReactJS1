@@ -115,6 +115,8 @@ def create_app(config_name=None):
     csrf.exempt(transactions_bp)
     # Exempt budget blueprint for JSON requests (React app)
     csrf.exempt(budget_bp)
+    # Exempt admin blueprint for JSON requests (React app)
+    csrf.exempt(admin_bp)
 
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(budget_bp)

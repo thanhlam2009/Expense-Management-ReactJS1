@@ -7,7 +7,10 @@ VERIFICATION_CODE_TTL_MINUTES = 15
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    user = User.query.get(int(user_id))
+    if user and not user.is_active:
+        return None
+    return user
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -18,6 +21,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(60), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     is_verified = db.Column(db.Boolean, default=False, nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     verification_code = db.Column(db.String(6))
     verification_code_expires = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -67,6 +71,7 @@ class User(UserMixin, db.Model):
             'full_name': self.full_name,
             'is_admin': self.is_admin,
             'is_verified': self.is_verified,
+            'is_active': self.is_active,
             'created_at': self.created_at.isoformat(),
             'last_login': self.last_login.isoformat() if self.last_login else None
         }

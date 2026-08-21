@@ -138,7 +138,25 @@ export const categoriesAPI = {
 
 // Admin APIs
 export const adminAPI = {
-  // Implement admin endpoints nếu cần
+  getUsers: () => api.get("/api/admin/users"),
+
+  createUser: (data: {
+    email: string;
+    full_name: string;
+    password: string;
+    is_admin?: boolean;
+  }) => api.post("/admin/users", data),
+
+  updateUser: (
+    id: number,
+    data: { email?: string; full_name?: string; password?: string },
+  ) => api.put(`/admin/users/${id}`, data),
+
+  toggleAdmin: (id: number) => api.post(`/admin/users/${id}/toggle-admin`),
+
+  deleteUser: (id: number) => api.delete(`/admin/users/${id}`),
+
+  restoreUser: (id: number) => api.post(`/admin/users/${id}/restore`),
 };
 
 export default api;

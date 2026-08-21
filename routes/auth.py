@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from models.user import User
 from app import db
-from services.mail_service import send_verification_email
+from services.mail_service import send_verification_email_async
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -144,13 +144,7 @@ def register():
         db.session.commit()
 
         code = user.generate_verification_code()
-        try:
-            send_verification_email(user, code)
-        except Exception:
-            return jsonify({
-                'message': 'Đăng ký thành công nhưng gửi email xác thực thất bại. Vui lòng dùng chức năng "Gửi lại mã".',
-                'email': user.email
-            }), 201
+        send_verification_email_async(user, code)
 
         return jsonify({
             'message': 'Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác thực.',
@@ -235,10 +229,7 @@ def resend_verification():
         return jsonify({'error': 'Tài khoản đã được xác thực!'}), 400
 
     code = user.generate_verification_code()
-    try:
-        send_verification_email(user, code)
-    except Exception:
-        return jsonify({'error': 'Không thể gửi email lúc này. Vui lòng thử lại sau.'}), 500
+    send_verification_email_async(user, code)
 
     return jsonify({'message': 'Đã gửi lại mã xác thực. Vui lòng kiểm tra email.'})
 

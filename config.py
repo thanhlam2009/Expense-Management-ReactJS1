@@ -15,7 +15,15 @@ class Config:
     
     # Session configuration
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
-    
+
+    # Email configuration (Flask-Mail) - dùng để gửi mã xác thực đăng ký
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_USERNAME') or 'noreply@example.com'
+
     # OCR configuration
     TESSERACT_CMD = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Windows path
     
@@ -63,6 +71,7 @@ class TestingConfig(Config):
         'poolclass': StaticPool,
     }
     WTF_CSRF_ENABLED = False
+    MAIL_SUPPRESS_SEND = True
 
 config = {
     'development': DevelopmentConfig,

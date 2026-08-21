@@ -18,12 +18,17 @@ export const authAPI = {
     api.post("/auth/login", { email, password, remember }),
 
   register: (data: {
-    username: string;
     email: string;
     full_name: string;
     password: string;
     confirm_password: string;
   }) => api.post("/auth/register", data),
+
+  verifyEmail: (email: string, code: string) =>
+    api.post("/auth/verify-email", { email, code }),
+
+  resendVerification: (email: string) =>
+    api.post("/auth/resend-verification", { email }),
 
   logout: () => api.get("/auth/logout"),
 };

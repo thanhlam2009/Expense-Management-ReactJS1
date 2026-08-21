@@ -7,7 +7,7 @@ interface Transaction {
   id: number;
   user: {
     id: number;
-    username: string;
+    full_name: string;
     email: string;
   };
   type: string;
@@ -97,7 +97,7 @@ export default function AdminTransactions() {
   const uniqueUsers = Array.from(
     new Set(
       transactions.map((t) =>
-        JSON.stringify({ id: t.user.id, username: t.user.username }),
+        JSON.stringify({ id: t.user.id, full_name: t.user.full_name }),
       ),
     ),
   ).map((str) => JSON.parse(str));
@@ -214,7 +214,7 @@ export default function AdminTransactions() {
                   <option value="">Tất cả người dùng</option>
                   {uniqueUsers.map((user) => (
                     <option key={user.id} value={user.id}>
-                      {user.username}
+                      {user.full_name}
                     </option>
                   ))}
                 </select>
@@ -244,10 +244,10 @@ export default function AdminTransactions() {
                           <td>
                             <div className="d-flex align-items-center">
                               <div className="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
-                                {transaction.user.username[0].toUpperCase()}
+                                {transaction.user.full_name[0].toUpperCase()}
                               </div>
                               <div>
-                                <strong>{transaction.user.username}</strong>
+                                <strong>{transaction.user.full_name}</strong>
                                 <br />
                                 <small className="text-muted">
                                   {transaction.user.email}

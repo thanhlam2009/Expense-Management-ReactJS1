@@ -1156,7 +1156,6 @@ def get_recent_users():
     return jsonify({
         'users': [{
             'id': u.id,
-            'username': u.username,
             'email': u.email,
             'full_name': u.full_name,
             'is_admin': u.is_admin,

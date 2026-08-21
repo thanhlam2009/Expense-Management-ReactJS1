@@ -9,6 +9,7 @@ import Layout from "./components/Layout/Layout";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import VerifyEmail from "./pages/VerifyEmail";
 import TransactionsList from "./pages/TransactionsList";
 import AddTransaction from "./pages/AddTransaction";
 import EditTransaction from "./pages/EditTransaction";
@@ -55,6 +56,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
 
           {/* Protected Routes */}
           <Route

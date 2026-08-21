@@ -27,7 +27,7 @@ def test_set_budget_rejects_non_positive(user_client):
 def test_password_is_hashed_not_plaintext(app):
     """Mật khẩu phải được băm (bcrypt), không lưu dạng plaintext."""
     with app.app_context():
-        u = User(username='hashtest', email='hash@example.com', full_name='Hash Test')
+        u = User(email='hash@example.com', full_name='Hash Test')
         u.set_password('matkhau-goc')
         assert u.password_hash != 'matkhau-goc'
         assert u.password_hash.startswith('$2')  # tiền tố định danh của bcrypt
@@ -38,8 +38,8 @@ def test_password_is_hashed_not_plaintext(app):
 def test_password_hash_is_salted(app):
     """Cùng một mật khẩu nhưng hai lần băm cho ra hash khác nhau (nhờ salt ngẫu nhiên)."""
     with app.app_context():
-        a = User(username='a', email='a@example.com', full_name='A')
-        b = User(username='b', email='b@example.com', full_name='B')
+        a = User(email='a@example.com', full_name='A')
+        b = User(email='b@example.com', full_name='B')
         a.set_password('cung-mat-khau')
         b.set_password('cung-mat-khau')
         assert a.password_hash != b.password_hash

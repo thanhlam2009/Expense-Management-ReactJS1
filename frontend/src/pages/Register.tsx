@@ -6,7 +6,6 @@ import { API_BASE_URL } from '../services/api';
 const Register = () => {
   const [formData, setFormData] = useState({
     fullName: '',
-    username: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -14,7 +13,6 @@ const Register = () => {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [errors, setErrors] = useState({
     password: '',
-    username: '',
     general: ''
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -43,18 +41,6 @@ const Register = () => {
     }
   }, []);
 
-  // Username validation
-  useEffect(() => {
-    if (formData.username) {
-      const validPattern = /^[a-zA-Z0-9_]+$/;
-      if (!validPattern.test(formData.username)) {
-        setErrors(prev => ({ ...prev, username: 'Chỉ sử dụng chữ cái, số và dấu gạch dưới' }));
-      } else {
-        setErrors(prev => ({ ...prev, username: '' }));
-      }
-    }
-  }, [formData.username]);
-
   // Password confirmation validation
   useEffect(() => {
     if (formData.confirmPassword && formData.password !== formData.confirmPassword) {
@@ -73,7 +59,7 @@ const Register = () => {
     e.preventDefault();
     
     // Validate
-    if (errors.password || errors.username) {
+    if (errors.password) {
       return;
     }
 
@@ -87,7 +73,7 @@ const Register = () => {
       return;
     }
 
-    setErrors({ password: '', username: '', general: '' });
+    setErrors({ password: '', general: '' });
     setIsLoading(true);
 
     try {
@@ -99,7 +85,6 @@ const Register = () => {
         credentials: 'include',
         body: JSON.stringify({
           full_name: formData.fullName,
-          username: formData.username,
           email: formData.email,
           password: formData.password,
           confirm_password: formData.confirmPassword
@@ -109,8 +94,8 @@ const Register = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Registration successful, redirect to login
-        navigate('/login', { state: { message: 'Đăng ký thành công! Vui lòng đăng nhập.' } });
+        // Registration successful, redirect to email verification
+        navigate('/verify-email', { state: { email: formData.email } });
       } else {
         setErrors(prev => ({ ...prev, general: data.error || 'Đăng ký thất bại. Vui lòng thử lại.' }));
       }
@@ -160,26 +145,6 @@ const Register = () => {
                     required
                   />
                 </div>
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="username" className="form-label">Tên đăng nhập</label>
-                <div className="input-group">
-                  <span className="input-group-text">
-                    <i className="fas fa-at"></i>
-                  </span>
-                  <input 
-                    type="text" 
-                    className={`form-control ${errors.username ? 'is-invalid' : ''}`}
-                    id="username" 
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    placeholder="Nhập tên đăng nhập" 
-                    required
-                  />
-                </div>
-                <div className="form-text">Chỉ sử dụng chữ cái, số và dấu gạch dưới</div>
               </div>
 
               <div className="mb-3">

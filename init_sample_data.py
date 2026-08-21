@@ -28,10 +28,10 @@ def create_sample_data():
         user = User.query.filter_by(email='user@example.com').first()
         if not user:
             user = User(
-                username='user',
                 email='user@example.com',
                 full_name='Người dùng Demo',
-                is_admin=False
+                is_admin=False,
+                is_verified=True
             )
             user.set_password('user123')
             db.session.add(user)

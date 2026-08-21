@@ -109,16 +109,22 @@ export default function Profile() {
                 <table className="table table-borderless">
                   <tbody>
                     <tr>
-                      <td><strong>Tên đăng nhập:</strong></td>
-                      <td>{user.username}</td>
-                    </tr>
-                    <tr>
                       <td><strong>Email:</strong></td>
                       <td>{user.email}</td>
                     </tr>
                     <tr>
                       <td><strong>Họ và tên:</strong></td>
                       <td>{user.full_name}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Xác thực email:</strong></td>
+                      <td>
+                        {user.is_verified ? (
+                          <span className="badge bg-success">Đã xác thực</span>
+                        ) : (
+                          <span className="badge bg-warning">Chưa xác thực</span>
+                        )}
+                      </td>
                     </tr>
                     <tr>
                       <td><strong>Ngày tạo tài khoản:</strong></td>

@@ -208,27 +208,6 @@ export function validateDate(date: string, options?: {
   return null;
 }
 
-// Username validation
-export function validateUsername(username: string): string | null {
-  if (!username || username.trim() === '') {
-    return 'Tên đăng nhập không được để trống';
-  }
-
-  if (username.length < 3) {
-    return 'Tên đăng nhập phải có ít nhất 3 ký tự';
-  }
-
-  if (username.length > 50) {
-    return 'Tên đăng nhập không được vượt quá 50 ký tự';
-  }
-
-  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-    return 'Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới';
-  }
-
-  return null;
-}
-
 // Confirm password validation
 export function validateConfirmPassword(password: string, confirmPassword: string): string | null {
   if (!confirmPassword) {

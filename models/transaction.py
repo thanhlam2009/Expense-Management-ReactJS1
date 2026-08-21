@@ -48,8 +48,8 @@ class Transaction(db.Model):
         if self.user:
             result['user'] = {
                 'id': self.user.id,
-                'username': self.user.username,
+                'full_name': self.user.full_name,
                 'email': self.user.email
             }
         
-        return result
+        return result 

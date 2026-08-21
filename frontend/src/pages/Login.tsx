@@ -7,6 +7,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, user } = useAuth();
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setUnverifiedEmail('');
     setIsLoading(true);
 
     try {
@@ -43,6 +45,9 @@ const Login = () => {
       navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+      if (err.response?.status === 403 && err.response?.data?.email) {
+        setUnverifiedEmail(err.response.data.email);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +71,14 @@ const Login = () => {
                     <div className="alert alert-danger alert-dismissible fade show" role="alert">
                       <i className="fas fa-exclamation-circle me-2"></i>
                       {error}
+                      {unverifiedEmail && (
+                        <>
+                          {' '}
+                          <Link to="/verify-email" state={{ email: unverifiedEmail }} className="alert-link">
+                            Xác thực email ngay
+                          </Link>
+                        </>
+                      )}
                       <button type="button" className="btn-close" onClick={() => setError('')}></button>
                     </div>
                   )}

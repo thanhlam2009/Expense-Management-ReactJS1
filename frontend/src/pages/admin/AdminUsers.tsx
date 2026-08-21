@@ -5,7 +5,6 @@ import { API_BASE_URL } from '../../services/api';
 
 interface User {
   id: number;
-  username: string;
   email: string;
   full_name: string;
   is_admin: boolean;
@@ -96,7 +95,6 @@ export default function AdminUsers() {
                     <thead className="table-light">
                       <tr>
                         <th>ID</th>
-                        <th>Tên đăng nhập</th>
                         <th>Email</th>
                         <th>Họ tên</th>
                         <th>Quyền</th>
@@ -108,14 +106,13 @@ export default function AdminUsers() {
                       {users.map(user => (
                         <tr key={user.id}>
                           <td>{user.id}</td>
+                          <td>{user.email}</td>
                           <td>
-                            <strong>{user.username}</strong>
+                            <strong>{user.full_name || '-'}</strong>
                             {user.id === currentUserId && (
                               <span className="badge bg-info ms-1">Bạn</span>
                             )}
                           </td>
-                          <td>{user.email}</td>
-                          <td>{user.full_name || '-'}</td>
                           <td>
                             {user.is_admin ? (
                               <span className="badge bg-danger">

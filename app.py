@@ -4,6 +4,7 @@ from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 from flask_wtf.csrf import CSRFProtect
 from flask_cors import CORS
+from flask_mail import Mail
 from flasgger import Swagger
 from config import config
 import os
@@ -13,6 +14,7 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 bcrypt = Bcrypt()
 csrf = CSRFProtect()
+mail = Mail()
 
 SWAGGER_TEMPLATE = {
     "swagger": "2.0",
@@ -66,6 +68,7 @@ def create_app(config_name=None):
     login_manager.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
+    mail.init_app(app)
     Swagger(app, template=SWAGGER_TEMPLATE, config=SWAGGER_CONFIG)
     
     # Configure CORS for React development
@@ -132,22 +135,22 @@ def create_app(config_name=None):
         admin = User.query.filter_by(email='admin@example.com').first()
         if not admin:
             admin = User(
-                username='admin',
                 email='admin@example.com',
                 full_name='Administrator',
-                is_admin=True
+                is_admin=True,
+                is_verified=True
             )
             admin.set_password('admin123')
             db.session.add(admin)
-        
+
         # Create sample user if doesn't exist
         user = User.query.filter_by(email='user@example.com').first()
         if not user:
             user = User(
-                username='user',
                 email='user@example.com',
                 full_name='Người dùng Demo',
-                is_admin=False
+                is_admin=False,
+                is_verified=True
             )
             user.set_password('user123')
             db.session.add(user)

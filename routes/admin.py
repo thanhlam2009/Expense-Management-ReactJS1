@@ -43,6 +43,6 @@ def toggle_admin(id):
     db.session.commit()
 
     return jsonify({
-        'message': f'Đã cập nhật quyền của {user.username} thành {"admin" if user.is_admin else "user"}!',
+        'message': f'Đã cập nhật quyền của {user.full_name} thành {"admin" if user.is_admin else "user"}!',
         'user': user.to_dict()
     })

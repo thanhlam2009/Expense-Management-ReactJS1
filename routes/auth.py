@@ -2,16 +2,17 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from models.user import User
 from app import db
+from services.mail_service import send_verification_email
 
 auth_bp = Blueprint('auth', __name__)
 
 def _user_dict(user):
     return {
         'id': user.id,
-        'username': user.username,
         'email': user.email,
         'full_name': user.full_name,
-        'is_admin': user.is_admin
+        'is_admin': user.is_admin,
+        'is_verified': user.is_verified
     }
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -43,6 +44,8 @@ def login():
         description: Đăng nhập thành công, trả về thông tin người dùng
       401:
         description: Email hoặc mật khẩu không đúng
+      403:
+        description: Tài khoản chưa xác thực email
     """
     if current_user.is_authenticated:
         return jsonify({'user': _user_dict(current_user)})
@@ -56,6 +59,12 @@ def login():
         user = User.query.filter_by(email=email).first()
 
         if user and user.check_password(password):
+            if not user.is_verified:
+                return jsonify({
+                    'error': 'Tài khoản chưa xác thực email. Vui lòng kiểm tra hộp thư và nhập mã xác thực.',
+                    'email': user.email
+                }), 403
+
             login_user(user, remember=remember)
             user.update_last_login()
             return jsonify({
@@ -70,6 +79,7 @@ def login():
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     """Đăng ký tài khoản mới
+    Sau khi đăng ký, hệ thống gửi mã OTP xác thực tới email; tài khoản phải xác thực mới đăng nhập được.
     ---
     tags:
       - Auth
@@ -79,11 +89,8 @@ def register():
         required: true
         schema:
           type: object
-          required: [username, email, full_name, password, confirm_password]
+          required: [email, full_name, password, confirm_password]
           properties:
-            username:
-              type: string
-              example: nguoidungmoi
             email:
               type: string
               example: moi@example.com
@@ -98,22 +105,21 @@ def register():
               example: matkhau123
     responses:
       201:
-        description: Đăng ký thành công
+        description: Đăng ký thành công, đã gửi mã xác thực tới email
       400:
-        description: Dữ liệu không hợp lệ (email/username đã tồn tại, mật khẩu quá ngắn, xác nhận không khớp...)
+        description: Dữ liệu không hợp lệ (email đã tồn tại, mật khẩu quá ngắn, xác nhận không khớp...)
     """
     if current_user.is_authenticated:
         return jsonify({'error': 'Already authenticated'}), 400
 
     if request.method == 'POST':
         data = request.get_json() or {}
-        username = data.get('username')
         email = data.get('email')
         full_name = data.get('full_name')
         password = data.get('password')
         confirm_password = data.get('confirm_password')
 
-        if not all([username, email, full_name, password, confirm_password]):
+        if not all([email, full_name, password, confirm_password]):
             return jsonify({'error': 'Vui lòng điền đầy đủ thông tin!'}), 400
 
         if password != confirm_password:
@@ -125,11 +131,7 @@ def register():
         if User.query.filter_by(email=email).first():
             return jsonify({'error': 'Email đã được sử dụng!'}), 400
 
-        if User.query.filter_by(username=username).first():
-            return jsonify({'error': 'Tên đăng nhập đã được sử dụng!'}), 400
-
         user = User(
-            username=username,
             email=email,
             full_name=full_name
         )
@@ -138,9 +140,104 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        return jsonify({'message': 'Đăng ký thành công! Vui lòng đăng nhập.'}), 201
+        code = user.generate_verification_code()
+        try:
+            send_verification_email(user, code)
+        except Exception:
+            return jsonify({
+                'message': 'Đăng ký thành công nhưng gửi email xác thực thất bại. Vui lòng dùng chức năng "Gửi lại mã".',
+                'email': user.email
+            }), 201
+
+        return jsonify({
+            'message': 'Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác thực.',
+            'email': user.email
+        }), 201
 
     return jsonify({'error': 'Method not allowed'}), 405
+
+@auth_bp.route('/verify-email', methods=['POST'])
+def verify_email():
+    """Xác thực email bằng mã OTP
+    Nếu mã hợp lệ, tài khoản được xác thực và đăng nhập luôn.
+    ---
+    tags:
+      - Auth
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required: [email, code]
+          properties:
+            email:
+              type: string
+              example: moi@example.com
+            code:
+              type: string
+              example: "123456"
+    responses:
+      200:
+        description: Xác thực thành công, đã đăng nhập
+      400:
+        description: Mã không đúng hoặc đã hết hạn
+    """
+    data = request.get_json() or {}
+    email = data.get('email')
+    code = data.get('code')
+
+    user = User.query.filter_by(email=email).first()
+    if not user or not code or not user.verify_code(code):
+        return jsonify({'error': 'Mã xác thực không đúng hoặc đã hết hạn!'}), 400
+
+    login_user(user)
+    user.update_last_login()
+    return jsonify({
+        'message': 'Xác thực email thành công!',
+        'user': _user_dict(user)
+    })
+
+@auth_bp.route('/resend-verification', methods=['POST'])
+def resend_verification():
+    """Gửi lại mã xác thực email
+    ---
+    tags:
+      - Auth
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required: [email]
+          properties:
+            email:
+              type: string
+              example: moi@example.com
+    responses:
+      200:
+        description: Đã gửi lại mã xác thực
+      400:
+        description: Email không tồn tại hoặc đã xác thực
+    """
+    data = request.get_json() or {}
+    email = data.get('email')
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'Email không tồn tại!'}), 400
+
+    if user.is_verified:
+        return jsonify({'error': 'Tài khoản đã được xác thực!'}), 400
+
+    code = user.generate_verification_code()
+    try:
+        send_verification_email(user, code)
+    except Exception:
+        return jsonify({'error': 'Không thể gửi email lúc này. Vui lòng thử lại sau.'}), 500
+
+    return jsonify({'message': 'Đã gửi lại mã xác thực. Vui lòng kiểm tra email.'})
 
 @auth_bp.route('/logout')
 @login_required
@@ -171,12 +268,6 @@ def check_session():
     if current_user.is_authenticated:
         return jsonify({
             'authenticated': True,
-            'user': {
-                'id': current_user.id,
-                'username': current_user.username,
-                'email': current_user.email,
-                'full_name': current_user.full_name,
-                'is_admin': current_user.is_admin
-            }
+            'user': _user_dict(current_user)
         })
     return jsonify({'authenticated': False})

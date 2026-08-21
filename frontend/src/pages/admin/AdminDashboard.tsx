@@ -15,7 +15,6 @@ interface AdminStats {
     id: number;
     full_name: string;
     email: string;
-    username: string;
     is_admin: boolean;
     created_at: string;
   }>;

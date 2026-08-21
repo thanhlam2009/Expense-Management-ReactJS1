@@ -4,7 +4,6 @@ from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 from flask_wtf.csrf import CSRFProtect
 from flask_cors import CORS
-from flask_mail import Mail
 from flasgger import Swagger
 from config import config
 import os
@@ -14,7 +13,6 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 bcrypt = Bcrypt()
 csrf = CSRFProtect()
-mail = Mail()
 
 SWAGGER_TEMPLATE = {
     "swagger": "2.0",
@@ -68,7 +66,6 @@ def create_app(config_name=None):
     login_manager.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
-    mail.init_app(app)
     Swagger(app, template=SWAGGER_TEMPLATE, config=SWAGGER_CONFIG)
     
     # Configure CORS for React development

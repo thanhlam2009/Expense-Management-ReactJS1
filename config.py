@@ -16,13 +16,12 @@ class Config:
     # Session configuration
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
-    # Email configuration (Flask-Mail) - dùng để gửi mã xác thực đăng ký
-    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
-    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
-    MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_USERNAME') or 'noreply@example.com'
+    # Email configuration (Brevo HTTP API) - dùng để gửi mã xác thực đăng ký.
+    # Lưu ý: SMTP trực tiếp (port 587/465) bị chặn ở tầng mạng trên Render free tier
+    # ("Network is unreachable"), nên phải gửi qua HTTP API (port 443) thay vì SMTP.
+    BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
+    MAIL_SENDER_EMAIL = os.environ.get('MAIL_SENDER_EMAIL')
+    MAIL_SENDER_NAME = os.environ.get('MAIL_SENDER_NAME', 'Quản lý Chi tiêu')
 
     # OCR configuration
     TESSERACT_CMD = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Windows path
@@ -71,7 +70,7 @@ class TestingConfig(Config):
         'poolclass': StaticPool,
     }
     WTF_CSRF_ENABLED = False
-    MAIL_SUPPRESS_SEND = True
+    MAIL_SUPPRESS_SEND = True  # Không gọi Brevo API thật khi chạy test
 
 config = {
     'development': DevelopmentConfig,

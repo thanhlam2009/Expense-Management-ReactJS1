@@ -149,6 +149,14 @@ export default function TransactionsList() {
     }
   };
 
+  const handleExportCsv = async () => {
+    try {
+      window.location.href = `${API_BASE_URL}/export/transactions/csv`;
+    } catch (error) {
+      console.error('Error exporting transactions (CSV):', error);
+    }
+  };
+
   return (
     <>
       <div className="row mb-4">
@@ -168,6 +176,10 @@ export default function TransactionsList() {
             <button onClick={handleExport} className="btn btn-success">
               <i className="fas fa-file-excel me-2"></i>
               Export Excel
+            </button>
+            <button onClick={handleExportCsv} className="btn btn-outline-success">
+              <i className="fas fa-file-csv me-2"></i>
+              Export CSV
             </button>
           </div>
         </div>

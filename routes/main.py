@@ -7,6 +7,7 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 import io
+import csv
 
 main_bp = Blueprint('main', __name__)
 
@@ -168,3 +169,51 @@ def export_transactions():
     except Exception as e:
         print(f"Export error: {str(e)}")
         return jsonify({'error': f'Lỗi khi export Excel: {str(e)}'}), 500
+
+@main_bp.route('/export/transactions/csv')
+@login_required
+def export_transactions_csv():
+    """Xuất toàn bộ giao dịch ra file CSV
+    ---
+    tags:
+      - Export
+    produces:
+      - text/csv
+    responses:
+      200:
+        description: File CSV chứa toàn bộ giao dịch (mã hóa UTF-8 có BOM để Excel hiển thị đúng tiếng Việt)
+    """
+    try:
+        transactions = Transaction.query.filter_by(user_id=current_user.id)\
+                                      .order_by(Transaction.date.desc())\
+                                      .all()
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['STT', 'Ngày', 'Loại', 'Danh mục', 'Mô tả', 'Số tiền (VNĐ)', 'Hóa đơn', 'Ngày tạo'])
+
+        for row, transaction in enumerate(transactions, 1):
+            writer.writerow([
+                row,
+                transaction.date.strftime('%d/%m/%Y'),
+                'Thu nhập' if transaction.type == 'income' else 'Chi tiêu',
+                transaction.category.name if transaction.category else 'N/A',
+                transaction.description or '',
+                float(transaction.amount),
+                'Có' if transaction.receipt_image else 'Không',
+                transaction.created_at.strftime('%d/%m/%Y %H:%M'),
+            ])
+
+        # utf-8-sig tự thêm BOM để Excel trên Windows hiển thị đúng dấu tiếng Việt khi mở file CSV
+        csv_bytes = output.getvalue().encode('utf-8-sig')
+
+        filename = f"giao_dich_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        response = make_response(csv_bytes)
+        response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        return response
+
+    except Exception as e:
+        print(f"CSV export error: {str(e)}")
+        return jsonify({'error': f'Lỗi khi export CSV: {str(e)}'}), 500

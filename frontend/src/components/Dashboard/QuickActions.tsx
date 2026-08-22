@@ -113,13 +113,19 @@ export default function QuickActions() {
 
             {/* Export Actions Row */}
             <div className="row mt-3">
-              <div className="col-md-4 mb-2">
+              <div className="col-md-3 mb-2">
                 <a href={`${API_BASE_URL}/export/transactions`} className="btn btn-outline-success w-100">
                   <i className="fas fa-file-excel me-2"></i>
                   Export Excel
                 </a>
               </div>
-              <div className="col-md-4 mb-2">
+              <div className="col-md-3 mb-2">
+                <a href={`${API_BASE_URL}/export/transactions/csv`} className="btn btn-outline-success w-100">
+                  <i className="fas fa-file-csv me-2"></i>
+                  Export CSV
+                </a>
+              </div>
+              <div className="col-md-3 mb-2">
                 <button
                   type="button"
                   className="btn btn-outline-primary w-100"
@@ -129,7 +135,7 @@ export default function QuickActions() {
                   In báo cáo
                 </button>
               </div>
-              <div className="col-md-4 mb-2">
+              <div className="col-md-3 mb-2">
                 <button
                   type="button"
                   className="btn btn-outline-info w-100"

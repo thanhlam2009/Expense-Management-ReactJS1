@@ -31,7 +31,7 @@ def extract_receipt_info():
         description: "Ảnh hóa đơn (png/jpg/jpeg/gif/pdf/bmp/webp)"
     responses:
       200:
-        description: "Kết quả trích xuất: {success, data: {amount, date, description, merchant, items, category_suggestion, confidence}}"
+        description: "Kết quả trích xuất: {success, data: {...}, receipt_image}. receipt_image là tên file đã lưu, gửi kèm khi tạo giao dịch (POST /api/transactions) để đính kèm ảnh."
       400:
         description: Không có file, hoặc định dạng file không được hỗ trợ
     """
@@ -73,13 +73,10 @@ def extract_receipt_info():
         # Khởi tạo OCR service và trích xuất thông tin
         ocr_service = get_ocr_service()
         result = ocr_service.extract_receipt_info(upload_path)
-        
-        # Xóa file tạm sau khi xử lý
-        try:
-            os.remove(upload_path)
-        except:
-            pass
-        
+
+        # Giữ lại file (không xoá) để có thể đính kèm vào giao dịch khi người dùng submit form
+        result['receipt_image'] = filename
+
         return jsonify(result)
         
     except Exception as e:

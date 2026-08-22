@@ -1,5 +1,7 @@
-from flask import Blueprint, jsonify, request
+import os
+from flask import Blueprint, jsonify, request, current_app
 from flask_login import login_required, current_user
+from werkzeug.utils import secure_filename
 from models.transaction import Transaction
 from models.category import Category
 from models.savings_goal import SavingsGoal
@@ -12,6 +14,15 @@ from services.prediction_service import ExpensePredictionService
 import calendar
 
 api_bp = Blueprint('api', __name__)
+
+def _resolve_receipt_image(filename):
+    """Chỉ chấp nhận receipt_image nếu file thật sự tồn tại trong thư mục upload
+    (tránh lưu một đường dẫn tuỳ ý do client tự gửi lên)."""
+    if not filename:
+        return None
+    safe_name = secure_filename(filename)
+    upload_path = os.path.join(current_app.config['UPLOAD_FOLDER'], safe_name)
+    return safe_name if os.path.isfile(upload_path) else None
 
 @api_bp.route('/transactions', methods=['GET'])
 @login_required
@@ -156,21 +167,26 @@ def create_transaction():
               type: string
               format: date
               example: "2026-07-18"
+            receipt_image:
+              type: string
+              description: Tên file trả về từ /transactions/extract-receipt (nếu có scan hóa đơn)
+              example: "20260718_101530_hoadon.jpg"
     responses:
       201:
         description: Giao dịch đã được tạo
     """
     data = request.get_json()
-    
+
     transaction = Transaction(
         amount=data['amount'],
         type=data['type'],
         category_id=data['category_id'],
         description=data.get('description', ''),
         date=datetime.strptime(data['date'], '%Y-%m-%d').date(),
+        receipt_image=_resolve_receipt_image(data.get('receipt_image')),
         user_id=current_user.id
     )
-    
+
     db.session.add(transaction)
     db.session.commit()
     
@@ -228,6 +244,9 @@ def update_transaction(id):
             date:
               type: string
               format: date
+            receipt_image:
+              type: string
+              description: Tên file trả về từ /transactions/extract-receipt (nếu muốn đính kèm/thay ảnh hóa đơn)
     responses:
       200:
         description: Giao dịch đã được cập nhật
@@ -236,14 +255,16 @@ def update_transaction(id):
     """
     transaction = Transaction.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     data = request.get_json()
-    
+
     transaction.amount = data['amount']
     transaction.type = data['type']
     transaction.category_id = data['category_id']
     transaction.description = data.get('description', '')
     transaction.date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+    if 'receipt_image' in data:
+        transaction.receipt_image = _resolve_receipt_image(data.get('receipt_image'))
     transaction.updated_at = datetime.utcnow()
-    
+
     db.session.commit()
     
     return jsonify(transaction.to_dict())

@@ -50,6 +50,7 @@ export default function AddTransaction() {
   const [ocrLoading, setOcrLoading] = useState(false);
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
   const [showOcrResults, setShowOcrResults] = useState(false);
+  const [receiptImageFilename, setReceiptImageFilename] = useState<string | null>(null);
 
   useEffect(() => {
     loadCategories();
@@ -84,7 +85,8 @@ export default function AddTransaction() {
         amount: parseFloat(formData.amount),
         category_id: parseInt(formData.category_id),
         date: formData.date,
-        description: formData.description
+        description: formData.description,
+        receipt_image: receiptImageFilename
       });
 
       navigate('/transactions');
@@ -126,6 +128,7 @@ export default function AddTransaction() {
     setImagePreview(null);
     setExtractedData(null);
     setShowOcrResults(false);
+    setReceiptImageFilename(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -145,7 +148,13 @@ export default function AddTransaction() {
       formData.append('receipt_image', selectedFile);
 
       const response = await transactionsAPI.extractReceipt(formData);
-      
+
+      // Ảnh đã được server lưu lại (không xoá) ngay khi upload, nên luôn ghi nhận
+      // tên file để đính kèm vào giao dịch, kể cả khi AI trích xuất dữ liệu thất bại.
+      if (response.data.receipt_image) {
+        setReceiptImageFilename(response.data.receipt_image);
+      }
+
       if (response.data.success) {
         setExtractedData(response.data.data);
         setShowOcrResults(true);

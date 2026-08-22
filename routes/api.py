@@ -335,6 +335,110 @@ def categories():
     categories = Category.query.all()
     return jsonify([c.to_dict() for c in categories])
 
+@api_bp.route('/categories/<int:id>', methods=['PUT'])
+@login_required
+def update_category(id):
+    """Cập nhật danh mục (chỉ Admin)
+    ---
+    tags:
+      - Categories
+    parameters:
+      - name: id
+        in: path
+        type: integer
+        required: true
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required: [name, type]
+          properties:
+            name:
+              type: string
+              example: Ăn uống
+            type:
+              type: string
+              enum: [income, expense]
+            description:
+              type: string
+    responses:
+      200:
+        description: Danh mục đã được cập nhật
+      400:
+        description: Thiếu dữ liệu, trùng với danh mục khác, hoặc đổi loại khi đã có giao dịch
+      403:
+        description: Chỉ quản trị viên mới có quyền sửa danh mục
+      404:
+        description: Không tìm thấy danh mục
+    """
+    if not current_user.is_admin:
+        return jsonify({'error': 'Chỉ quản trị viên mới có quyền sửa danh mục'}), 403
+
+    category = Category.query.get_or_404(id)
+    data = request.get_json() or {}
+    name = data.get('name')
+    category_type = data.get('type')
+
+    if not name or not category_type:
+        return jsonify({'error': 'Tên và loại danh mục là bắt buộc'}), 400
+
+    has_transactions = Transaction.query.filter_by(category_id=category.id).first() is not None
+    if has_transactions and category_type != category.type:
+        return jsonify({'error': 'Danh mục đã có giao dịch, chỉ có thể sửa tên và mô tả'}), 400
+
+    duplicate = Category.query.filter(
+        Category.name == name,
+        Category.type == category_type,
+        Category.id != category.id
+    ).first()
+    if duplicate:
+        return jsonify({'error': 'Danh mục đã tồn tại'}), 400
+
+    category.name = name
+    category.type = category_type
+    category.description = data.get('description', category.description)
+    db.session.commit()
+
+    return jsonify(category.to_dict())
+
+@api_bp.route('/categories/<int:id>', methods=['DELETE'])
+@login_required
+def delete_category(id):
+    """Xóa danh mục (chỉ Admin)
+    Không thể xóa danh mục đang có giao dịch tham chiếu tới.
+    ---
+    tags:
+      - Categories
+    parameters:
+      - name: id
+        in: path
+        type: integer
+        required: true
+    responses:
+      204:
+        description: Đã xóa thành công
+      400:
+        description: Danh mục đang được sử dụng bởi giao dịch, không thể xóa
+      403:
+        description: Chỉ quản trị viên mới có quyền xóa danh mục
+      404:
+        description: Không tìm thấy danh mục
+    """
+    if not current_user.is_admin:
+        return jsonify({'error': 'Chỉ quản trị viên mới có quyền xóa danh mục'}), 403
+
+    category = Category.query.get_or_404(id)
+
+    in_use = Transaction.query.filter_by(category_id=category.id).first()
+    if in_use:
+        return jsonify({'error': 'Danh mục đang được sử dụng bởi giao dịch, không thể xóa'}), 400
+
+    db.session.delete(category)
+    db.session.commit()
+
+    return '', 204
+
 @api_bp.route('/dashboard/data', methods=['GET'])
 @login_required
 def get_dashboard_data():

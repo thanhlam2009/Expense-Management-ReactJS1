@@ -134,6 +134,16 @@ export const budgetAPI = {
 // Categories APIs
 export const categoriesAPI = {
   getAll: () => api.get("/api/categories"),
+
+  create: (data: { name: string; type: string; description?: string }) =>
+    api.post("/api/categories", data),
+
+  update: (
+    id: number,
+    data: { name: string; type: string; description?: string },
+  ) => api.put(`/api/categories/${id}`, data),
+
+  delete: (id: number) => api.delete(`/api/categories/${id}`),
 };
 
 // Admin APIs

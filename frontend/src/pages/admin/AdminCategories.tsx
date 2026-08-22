@@ -1,7 +1,8 @@
 // Admin Categories Page - Copy từ templates/admin/categories.html
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_BASE_URL } from '../../services/api';
+import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import { API_BASE_URL, categoriesAPI } from '../../services/api';
 
 interface Category {
   id: number;
@@ -17,6 +18,14 @@ export default function AdminCategories() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editError, setEditError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [listError, setListError] = useState('');
+
   useEffect(() => {
     loadCategories();
   }, []);
@@ -28,7 +37,7 @@ export default function AdminCategories() {
       const response = await fetch(`${API_BASE_URL}/api/admin/categories`, {
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
@@ -37,6 +46,51 @@ export default function AdminCategories() {
       console.error('Error loading categories:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openEdit = (category: Category) => {
+    setEditingCategory(category);
+    setEditName(category.name);
+    setEditDescription(category.description || '');
+    setEditError('');
+  };
+
+  const closeEdit = () => {
+    setEditingCategory(null);
+    setEditError('');
+  };
+
+  const saveEdit = async () => {
+    if (!editingCategory) return;
+    try {
+      setSaving(true);
+      setEditError('');
+      await categoriesAPI.update(editingCategory.id, {
+        name: editName,
+        type: editingCategory.type,
+        description: editDescription,
+      });
+      closeEdit();
+      loadCategories();
+    } catch (err: any) {
+      setEditError(err?.response?.data?.error || 'Có lỗi xảy ra khi cập nhật danh mục');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (category: Category) => {
+    if (!window.confirm(`Xóa danh mục "${category.name}"?`)) return;
+    try {
+      setDeletingId(category.id);
+      setListError('');
+      await categoriesAPI.delete(category.id);
+      loadCategories();
+    } catch (err: any) {
+      setListError(err?.response?.data?.error || 'Có lỗi xảy ra khi xóa danh mục');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -70,7 +124,7 @@ export default function AdminCategories() {
               </h2>
               <p className="text-muted">Quản lý danh mục thu nhập và chi tiêu</p>
             </div>
-            <button 
+            <button
               onClick={() => navigate('/admin/categories/add')}
               className="btn btn-primary"
             >
@@ -78,6 +132,11 @@ export default function AdminCategories() {
               Thêm danh mục
             </button>
           </div>
+          {listError && (
+            <Alert variant="danger" className="mt-3" onClose={() => setListError('')} dismissible>
+              {listError}
+            </Alert>
+          )}
         </div>
       </div>
 
@@ -129,6 +188,7 @@ export default function AdminCategories() {
                         <th>Mô tả</th>
                         <th>Số giao dịch</th>
                         <th>Ngày tạo</th>
+                        <th>Thao tác</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -152,6 +212,22 @@ export default function AdminCategories() {
                             <small className="text-muted">
                               {formatDate(category.created_at)}
                             </small>
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-sm btn-outline-secondary me-2"
+                              onClick={() => openEdit(category)}
+                            >
+                              <i className="fas fa-pen"></i> Sửa
+                            </button>
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              disabled={category.transaction_count > 0 || deletingId === category.id}
+                              title={category.transaction_count > 0 ? 'Không thể xóa danh mục đang có giao dịch' : ''}
+                              onClick={() => handleDelete(category)}
+                            >
+                              <i className="fas fa-trash"></i> Xóa
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -191,6 +267,7 @@ export default function AdminCategories() {
                         <th>Mô tả</th>
                         <th>Số giao dịch</th>
                         <th>Ngày tạo</th>
+                        <th>Thao tác</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -214,6 +291,22 @@ export default function AdminCategories() {
                             <small className="text-muted">
                               {formatDate(category.created_at)}
                             </small>
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-sm btn-outline-secondary me-2"
+                              onClick={() => openEdit(category)}
+                            >
+                              <i className="fas fa-pen"></i> Sửa
+                            </button>
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              disabled={category.transaction_count > 0 || deletingId === category.id}
+                              title={category.transaction_count > 0 ? 'Không thể xóa danh mục đang có giao dịch' : ''}
+                              onClick={() => handleDelete(category)}
+                            >
+                              <i className="fas fa-trash"></i> Xóa
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -278,6 +371,48 @@ export default function AdminCategories() {
           </div>
         </div>
       </div>
+
+      <Modal show={!!editingCategory} onHide={closeEdit} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Sửa danh mục</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {editError && <Alert variant="danger">{editError}</Alert>}
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Tên danh mục</Form.Label>
+              <Form.Control
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Mô tả</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={2}
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+              />
+            </Form.Group>
+            {editingCategory && editingCategory.transaction_count > 0 && (
+              <p className="text-muted small mb-0">
+                <i className="fas fa-info-circle me-1"></i>
+                Danh mục này đã có giao dịch nên không thể đổi loại (Thu nhập/Chi tiêu).
+              </p>
+            )}
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeEdit} disabled={saving}>
+            Hủy
+          </Button>
+          <Button variant="primary" onClick={saveEdit} disabled={saving || !editName.trim()}>
+            {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }

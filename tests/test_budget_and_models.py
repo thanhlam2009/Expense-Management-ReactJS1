@@ -5,6 +5,7 @@ TC-06: Kiểm thử white-box mức đơn vị cho model (băm mật khẩu bcry
 TC-07: Kiểm thử Danh mục.
 """
 from models.user import User
+from tests.conftest import login
 
 
 # ---------- TC-05: Ngân sách ----------
@@ -71,4 +72,85 @@ def test_create_category_forbidden_for_normal_user(user_client):
     resp = user_client.post('/api/categories', json={
         'name': 'Danh mục lén tạo', 'type': 'expense'
     })
+    assert resp.status_code == 403
+
+
+def _create_category(client, name, type_='expense'):
+    resp = client.post('/api/categories', json={'name': name, 'type': type_})
+    assert resp.status_code == 201
+    return resp.get_json()['id']
+
+
+def test_update_category_success(admin_client):
+    cat_id = _create_category(admin_client, 'Cần sửa')
+    resp = admin_client.put(f'/api/categories/{cat_id}', json={
+        'name': 'Đã sửa', 'type': 'expense', 'description': 'mô tả mới'
+    })
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data['name'] == 'Đã sửa'
+    assert data['description'] == 'mô tả mới'
+
+
+def test_update_category_forbidden_for_normal_user(client):
+    login(client, 'admin@example.com', 'admin123')
+    cat_id = _create_category(client, 'Không cho sửa')
+    client.get('/auth/logout')
+
+    login(client, 'user@example.com', 'user123')
+    resp = client.put(f'/api/categories/{cat_id}', json={
+        'name': 'Hack', 'type': 'expense'
+    })
+    assert resp.status_code == 403
+
+
+def test_update_category_rejects_type_change_when_in_use(client):
+    login(client, 'admin@example.com', 'admin123')
+    cat_id = _create_category(client, 'Đang dùng')
+    client.get('/auth/logout')
+
+    login(client, 'user@example.com', 'user123')
+    tx = client.post('/api/transactions', json={
+        'amount': 10000, 'type': 'expense', 'category_id': cat_id, 'date': '2026-01-01'
+    })
+    assert tx.status_code == 201
+    client.get('/auth/logout')
+
+    login(client, 'admin@example.com', 'admin123')
+    resp = client.put(f'/api/categories/{cat_id}', json={
+        'name': 'Đang dùng', 'type': 'income'
+    })
+    assert resp.status_code == 400
+
+
+def test_delete_category_success(admin_client):
+    cat_id = _create_category(admin_client, 'Sẽ bị xóa')
+    resp = admin_client.delete(f'/api/categories/{cat_id}')
+    assert resp.status_code == 204
+
+
+def test_delete_category_rejected_when_in_use(client):
+    login(client, 'admin@example.com', 'admin123')
+    cat_id = _create_category(client, 'Có giao dịch')
+    client.get('/auth/logout')
+
+    login(client, 'user@example.com', 'user123')
+    tx = client.post('/api/transactions', json={
+        'amount': 10000, 'type': 'expense', 'category_id': cat_id, 'date': '2026-01-01'
+    })
+    assert tx.status_code == 201
+    client.get('/auth/logout')
+
+    login(client, 'admin@example.com', 'admin123')
+    resp = client.delete(f'/api/categories/{cat_id}')
+    assert resp.status_code == 400
+
+
+def test_delete_category_forbidden_for_normal_user(client):
+    login(client, 'admin@example.com', 'admin123')
+    cat_id = _create_category(client, 'User không được xóa')
+    client.get('/auth/logout')
+
+    login(client, 'user@example.com', 'user123')
+    resp = client.delete(f'/api/categories/{cat_id}')
     assert resp.status_code == 403

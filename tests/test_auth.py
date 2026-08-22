@@ -29,6 +29,18 @@ def test_login_nonexistent_user(client):
     assert resp.status_code == 401
 
 
+def test_login_switches_account_without_explicit_logout(client):
+    """Đang đăng nhập tài khoản A, gọi /auth/login bằng tài khoản B (không logout trước)
+    -> phải chuyển hẳn sang phiên của B, không được kẹt lại ở A."""
+    login(client, 'admin@example.com', 'admin123')
+    assert client.get('/auth/check-session').get_json()['user']['email'] == 'admin@example.com'
+
+    resp = login(client, 'user@example.com', 'user123')
+    assert resp.status_code == 200
+    assert resp.get_json()['user']['email'] == 'user@example.com'
+    assert client.get('/auth/check-session').get_json()['user']['email'] == 'user@example.com'
+
+
 def test_login_unverified_account_blocked(client, app):
     """Tài khoản chưa xác thực email -> 403, không được cấp phiên."""
     with app.app_context():

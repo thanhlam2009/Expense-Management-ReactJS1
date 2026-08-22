@@ -47,37 +47,41 @@ def login():
       403:
         description: Tài khoản chưa xác thực email
     """
-    if current_user.is_authenticated:
-        return jsonify({'user': _user_dict(current_user)})
+    if request.method == 'GET':
+        if current_user.is_authenticated:
+            return jsonify({'user': _user_dict(current_user)})
+        return jsonify({'error': 'Method not allowed'}), 405
 
-    if request.method == 'POST':
-        data = request.get_json() or {}
-        email = data.get('email')
-        password = data.get('password')
-        remember = bool(data.get('remember', False))
+    data = request.get_json() or {}
+    email = data.get('email')
+    password = data.get('password')
+    remember = bool(data.get('remember', False))
 
-        user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(email=email).first()
 
-        if user and user.check_password(password):
-            if not user.is_active:
-                return jsonify({'error': 'Tài khoản đã bị vô hiệu hóa.'}), 403
+    if user and user.check_password(password):
+        if not user.is_active:
+            return jsonify({'error': 'Tài khoản đã bị vô hiệu hóa.'}), 403
 
-            if not user.is_verified:
-                return jsonify({
-                    'error': 'Tài khoản chưa xác thực email. Vui lòng kiểm tra hộp thư và nhập mã xác thực.',
-                    'email': user.email
-                }), 403
-
-            login_user(user, remember=remember)
-            user.update_last_login()
+        if not user.is_verified:
             return jsonify({
-                'message': f'Chào mừng {user.full_name}!',
-                'user': _user_dict(user)
-            })
+                'error': 'Tài khoản chưa xác thực email. Vui lòng kiểm tra hộp thư và nhập mã xác thực.',
+                'email': user.email
+            }), 403
 
-        return jsonify({'error': 'Email hoặc mật khẩu không đúng!'}), 401
+        # Nếu trình duyệt đang mang một phiên đăng nhập khác, đăng xuất phiên đó
+        # trước khi tạo phiên mới - tránh việc gọi lại /login bị "kẹt" ở tài khoản cũ.
+        if current_user.is_authenticated:
+            logout_user()
 
-    return jsonify({'error': 'Method not allowed'}), 405
+        login_user(user, remember=remember)
+        user.update_last_login()
+        return jsonify({
+            'message': f'Chào mừng {user.full_name}!',
+            'user': _user_dict(user)
+        })
+
+    return jsonify({'error': 'Email hoặc mật khẩu không đúng!'}), 401
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():

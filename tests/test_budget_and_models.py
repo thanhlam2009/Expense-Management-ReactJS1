@@ -65,3 +65,10 @@ def test_create_duplicate_category_rejected(admin_client):
     payload = {'name': 'Trùng lặp', 'type': 'income'}
     assert admin_client.post('/api/categories', json=payload).status_code == 201
     assert admin_client.post('/api/categories', json=payload).status_code == 400
+
+
+def test_create_category_forbidden_for_normal_user(user_client):
+    resp = user_client.post('/api/categories', json={
+        'name': 'Danh mục lén tạo', 'type': 'expense'
+    })
+    assert resp.status_code == 403

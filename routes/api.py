@@ -304,13 +304,18 @@ def categories():
         description: (POST) Danh mục đã được tạo
       400:
         description: (POST) Thiếu dữ liệu hoặc danh mục đã tồn tại
+      403:
+        description: (POST) Chỉ quản trị viên mới có quyền tạo danh mục
     """
     if request.method == 'POST':
+        if not current_user.is_admin:
+            return jsonify({'error': 'Chỉ quản trị viên mới có quyền tạo danh mục'}), 403
+
         data = request.get_json()
         name = data.get('name')
         category_type = data.get('type')
         description = data.get('description', '')
-        
+
         if not name or not category_type:
             return jsonify({'error': 'Tên và loại danh mục là bắt buộc'}), 400
         

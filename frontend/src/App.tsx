@@ -25,7 +25,13 @@ import AdminTransactions from "./pages/admin/AdminTransactions";
 import AddCategory from "./pages/admin/AddCategory";
 
 // Protected Route Component
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({
+  children,
+  adminOnly = false,
+}: {
+  children: React.ReactNode;
+  adminOnly?: boolean;
+}) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -43,6 +49,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return <Navigate to="/login" />;
+  }
+
+  if (adminOnly && !user.is_admin) {
+    return <Navigate to="/dashboard" />;
   }
 
   return <>{children}</>;
@@ -80,11 +90,46 @@ function App() {
             />
             <Route path="budget" element={<BudgetSettings />} />
             <Route path="profile" element={<Profile />} />
-            <Route path="admin" element={<AdminDashboard />} />
-            <Route path="admin/users" element={<AdminUsers />} />
-            <Route path="admin/categories" element={<AdminCategories />} />
-            <Route path="admin/categories/add" element={<AddCategory />} />
-            <Route path="admin/transactions" element={<AdminTransactions />} />
+            <Route
+              path="admin"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/users"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminUsers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/categories"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminCategories />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/categories/add"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AddCategory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/transactions"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminTransactions />
+                </ProtectedRoute>
+              }
+            />
           </Route>
         </Routes>
       </Router>
